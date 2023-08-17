@@ -19,8 +19,8 @@ from sklearn.preprocessing import QuantileTransformer
 
 class NetworkHandler:
     """Simple multi-layer dense network."""
-    num_dense_layers = 10
-    dense_neurons = 10
+    num_dense_layers = 5
+    dense_neurons = 50
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
@@ -119,7 +119,7 @@ class FeatureNormalizer:
             self.status = 'no transform'
         else:
             self.status = 'not trained'
-        self.transformer = QuantileTransformer(n_quantiles=50)
+        self.transformer = QuantileTransformer(n_quantiles=200)
         self.category_index: Tuple[str, ...] = ('', )
 
     def get_status(self):
