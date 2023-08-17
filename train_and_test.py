@@ -80,10 +80,7 @@ class NetworkHandler:
         assert self.model is not None
         self.model.compile(loss='binary_crossentropy',
                            optimizer='adam',
-                           metrics=[
-                               tf.keras.metrics.BinaryAccuracy(),
-                               tf.keras.metrics.BinaryCrossentropy()
-                           ])
+                           metrics=[tf.keras.metrics.BinaryAccuracy()])
         self.model.fit(x_data,
                        y_data,
                        validation_data=validation_data,
