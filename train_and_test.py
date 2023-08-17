@@ -97,7 +97,6 @@ class FeatureNormalizer:
         if self.status == 'binary':
             return
 
-        self.category_index.index('a')
         if self.status == 'categorical':
             trans_data = []
             for row_id in range(len(data.index)):
@@ -105,6 +104,8 @@ class FeatureNormalizer:
                 trans_data.append(
                     self.category_index.index(value) /
                     len(self.category_index))
+            data[self.feature_name] = trans_data
+            return
 
         # Sanity check.
         assert self.status == 'quantile'
@@ -112,7 +113,6 @@ class FeatureNormalizer:
         transformed_data = self.transformer.transform(
             self.extract_feature(data))
         trans_data = transformed_data.reshape((transformed_data.shape[0], ))
-        data[self.feature_name] = trans_data
 
 
 def runit():
@@ -129,6 +129,8 @@ def runit():
     # Transform the features with quantile mapping, but skip
     # special columns and binary features.
     for col_name in all_data.columns:
+        if col_name in special_columns:
+            continue
         normalizer = FeatureNormalizer(col_name, special_columns)
         normalizer.train(all_data[all_data['split'] == 'train'])
         print(col_name, normalizer.get_status())
