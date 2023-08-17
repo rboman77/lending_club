@@ -19,8 +19,8 @@ from sklearn.preprocessing import QuantileTransformer
 
 class NetworkHandler:
     """Simple multi-layer dense network."""
-    num_dense_layers = 3
-    dense_neurons = 10
+    num_dense_layers = 4
+    dense_neurons = 4
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
