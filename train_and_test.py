@@ -40,6 +40,7 @@ class NetworkHandler:
         layer = self.input_layer
         for _ in range(self.num_dense_layers):
             layer = tf.keras.layers.Dense(self.dense_neurons)(layer)
+            layer = tf.keras.activations.relu(layer)
         self.output_layer = layer
         self.model = tf.keras.Model(inputs=(self.input_layer, ),
                                     outputs=(self.output_layer, ))
@@ -61,7 +62,7 @@ class NetworkHandler:
     def get_gt_data(self, split: str, raw_data: pd.DataFrame) -> np.ndarray:
         """Extract the ground truth for each row in the dataframe and
         return them in a numpy array."""
-        split_data = raw_data[raw_data[split] == split]
+        split_data = raw_data[raw_data['split'] == split]
         result = []
         for row_id in range(len(split_data.index)):
             input_row = split_data.iloc[row_id]
@@ -77,6 +78,7 @@ class NetworkHandler:
         validation_data = (self.get_feature_data('valid', train_valid_data),
                            self.get_gt_data('valid', train_valid_data))
         assert self.model is not None
+        self.model.compile(loss='binary_crossentropy')
         self.model.fit(x_data,
                        y_data,
                        validation_data=validation_data,
