@@ -2,9 +2,11 @@
 Train a model to predict loan payment using the train and valid splits.
 Test the model using the test split.
 """
+import collections
 import pathlib
 import sqlite3
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
+from numbers import Number
 
 import tensorflow as tf
 import numpy as np
@@ -17,8 +19,8 @@ from sklearn.preprocessing import QuantileTransformer
 
 class NetworkHandler:
     """Simple multi-layer dense network."""
-    num_dense_layers = 3
-    dense_neurons = 20
+    num_dense_layers = 10
+    dense_neurons = 10
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
@@ -38,10 +40,11 @@ class NetworkHandler:
         """Build the network."""
         self.input_layer = tf.keras.Input((self.num_features, ))
         layer = self.input_layer
-        for _ in range(self.num_dense_layers):
+        for i in range(self.num_dense_layers):
             layer = tf.keras.layers.Dense(self.dense_neurons)(layer)
-            layer = tf.keras.activations.relu(layer)
-        self.output_layer = layer
+            if i != self.num_dense_layers - 1:
+                layer = tf.keras.activations.tanh(layer)
+        self.output_layer = tf.keras.activations.softmax(layer)
         self.model = tf.keras.Model(inputs=(self.input_layer, ),
                                     outputs=(self.output_layer, ))
 
@@ -73,6 +76,18 @@ class NetworkHandler:
                       train_valid_data: pd.DataFrame,
                       num_epochs: int = 50):
         """Train the network using train and valid splits."""
+
+        sample_counts: Dict[Number, int]  = collections.defaultdict(int)
+        for row_id in range(len(train_valid_data.index)):
+            row = train_valid_data.iloc[row_id]
+            sample_counts[row[self.gt_column]] += 1
+        sample_fractions = {}
+        for key in sample_counts:
+            sample_fractions[key] = float(sample_counts[key]) / len(train_valid_data.index)
+        # Class weights are the inverse of the sample counts.
+        class_weights: Dict[Number, float] = {}
+        for key, value in sample_fractions.items():
+            class_weights[key] = 1. / value
         x_data = self.get_feature_data('train', train_valid_data)
         y_data = self.get_gt_data('train', train_valid_data)
         validation_data = (self.get_feature_data('valid', train_valid_data),
@@ -84,7 +99,7 @@ class NetworkHandler:
         self.model.fit(x_data,
                        y_data,
                        validation_data=validation_data,
-                       epochs=num_epochs)
+                       epochs=num_epochs, class_weight=class_weights)
 
     def test_network(self):
         """Test the network using the test split."""
@@ -186,7 +201,7 @@ def runit():
         len(all_data.columns) - len(special_columns), 'split',
         'not_fully_paid', all_data.columns)
     network.build_network()
-    network.train_network(all_data, 20)
+    network.train_network(all_data, 10)
 
 
 runit()
