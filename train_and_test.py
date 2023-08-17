@@ -4,7 +4,7 @@ Test the model using the test split.
 """
 import pathlib
 import sqlite3
-from typing import Tuple
+from typing import Optional, Tuple
 
 import tensorflow as tf
 import numpy as np
@@ -12,6 +12,7 @@ import pandas as pd
 from sklearn.preprocessing import QuantileTransformer
 
 # mypy: disable-error-code=import
+# pylint: disable=consider-using-enumerate
 
 
 class NetworkHandler:
@@ -19,13 +20,19 @@ class NetworkHandler:
     num_dense_layers = 4
     dense_neurons = 4
 
-    def __init__(self, num_features, split_column, gt_column):
+    def __init__(self, num_features, split_column, gt_column,
+                 col_names: Tuple[str, ...]):
         self.num_features = num_features
         self.split_column = split_column
         self.gt_column = gt_column
         self.input_layer = None
         self.output_layer = None
-        self.model = None
+        self.model: Optional[tf.keras.Model] = None
+        self.col_index = []
+        for col_name in col_names:
+            if col_name not in ((split_column, gt_column)):
+                self.col_index.append(col_name)
+        self.col_index.sort()
 
     def build_network(self):
         """Build the network."""
@@ -37,8 +44,43 @@ class NetworkHandler:
         self.model = tf.keras.Model(inputs=(self.input_layer, ),
                                     outputs=(self.output_layer, ))
 
-    def train_network(self, train_data: pd.DataFrame):
+    def get_feature_data(self, split: str,
+                         raw_data: pd.DataFrame) -> np.ndarray:
+        """Extract the features for each row in the dataframe and
+        return them in a numpy array."""
+        split_data = raw_data[raw_data['split'] == split]
+        result = []
+        for row_id in range(len(split_data.index)):
+            input_row = split_data.iloc[row_id]
+            result_row = []
+            for i in range(len(self.col_index)):
+                result_row.append(input_row[self.col_index[i]])
+            result.append(result_row)
+        return np.array(result)
+
+    def get_gt_data(self, split: str, raw_data: pd.DataFrame) -> np.ndarray:
+        """Extract the ground truth for each row in the dataframe and
+        return them in a numpy array."""
+        split_data = raw_data[raw_data[split] == split]
+        result = []
+        for row_id in range(len(split_data.index)):
+            input_row = split_data.iloc[row_id]
+            result.append(input_row[self.gt_column])
+        return np.array(result)
+
+    def train_network(self,
+                      train_valid_data: pd.DataFrame,
+                      num_epochs: int = 50):
         """Train the network using train and valid splits."""
+        x_data = self.get_feature_data('train', train_valid_data)
+        y_data = self.get_gt_data('train', train_valid_data)
+        validation_data = (self.get_feature_data('valid', train_valid_data),
+                           self.get_gt_data('valid', train_valid_data))
+        assert self.model is not None
+        self.model.fit(x_data,
+                       y_data,
+                       validation_data=validation_data,
+                       epochs=num_epochs)
 
     def test_network(self):
         """Test the network using the test split."""
@@ -126,10 +168,8 @@ def runit():
     all_data = pd.read_sql_query('select * from loan_data', conn)
     special_columns = ('split', 'not_fully_paid')
 
-    print('befor normalize')
-    print(all_data.iloc[:10])
     # Transform the features with quantile mapping, but skip
-    # special columns and binary features.
+    # special columns.
     for col_name in all_data.columns:
         if col_name in special_columns:
             continue
@@ -137,14 +177,12 @@ def runit():
         normalizer.train(all_data[all_data['split'] == 'train'])
         print(col_name, normalizer.get_status())
         normalizer.normalize(all_data)
-    print('after normalize')
-    print(all_data.iloc[:10])
 
     network = NetworkHandler(
         len(all_data.columns) - len(special_columns), 'split',
-        'not_fully_paid')
+        'not_fully_paid', all_data.columns)
     network.build_network()
-    print('network built')
+    network.train_network(all_data, 20)
 
 
 runit()
