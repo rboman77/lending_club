@@ -10,10 +10,12 @@ import pandas as pd
 def runit():
     code_folder = pathlib.Path(__file__).resolve().parents[0]
     data_folder = code_folder.parents[0] / 'data'
-    print('code folder', code_folder)
-    print('data folder', data_folder)
     all_data = pd.read_csv(data_folder / 'lending_club_loan_data_analysis.csv')
-    print(all_data)
+    # Split data by paid and not paid.
+    by_paid = {}
+    for paid in (1, 0):
+        by_paid[paid] = all_data[all_data['not.fully.paid'] == paid]
+        print('paid', paid, len(by_paid[paid].index))
 
 
 runit()
