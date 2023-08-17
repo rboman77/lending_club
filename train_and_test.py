@@ -112,7 +112,9 @@ class FeatureNormalizer:
 
         transformed_data = self.transformer.transform(
             self.extract_feature(data))
-        trans_data = transformed_data.reshape((transformed_data.shape[0], ))
+        transformed_data = transformed_data.reshape(
+            (transformed_data.shape[0], ))
+        data[self.feature_name] = transformed_data
 
 
 def runit():
@@ -131,14 +133,10 @@ def runit():
     for col_name in all_data.columns:
         if col_name in special_columns:
             continue
-        print('before', col_name)
-        print(all_data[col_name])
         normalizer = FeatureNormalizer(col_name, special_columns)
         normalizer.train(all_data[all_data['split'] == 'train'])
         print(col_name, normalizer.get_status())
         normalizer.normalize(all_data)
-        print('after')
-        print(all_data[col_name])
     print('after normalize')
     print(all_data.iloc[:10])
 
