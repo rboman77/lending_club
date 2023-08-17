@@ -19,8 +19,8 @@ from sklearn.preprocessing import QuantileTransformer
 
 class NetworkHandler:
     """Simple multi-layer dense network."""
-    num_dense_layers = 5
-    dense_neurons = 50
+    num_dense_layers = 1
+    dense_neurons = 3
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
@@ -77,13 +77,14 @@ class NetworkHandler:
                       num_epochs: int = 50):
         """Train the network using train and valid splits."""
 
-        sample_counts: Dict[Number, int]  = collections.defaultdict(int)
+        sample_counts: Dict[Number, int] = collections.defaultdict(int)
         for row_id in range(len(train_valid_data.index)):
             row = train_valid_data.iloc[row_id]
             sample_counts[row[self.gt_column]] += 1
         sample_fractions = {}
         for key in sample_counts:
-            sample_fractions[key] = float(sample_counts[key]) / len(train_valid_data.index)
+            sample_fractions[key] = float(sample_counts[key]) / len(
+                train_valid_data.index)
         # Class weights are the inverse of the sample counts.
         class_weights: Dict[Number, float] = {}
         for key, value in sample_fractions.items():
@@ -99,10 +100,17 @@ class NetworkHandler:
         self.model.fit(x_data,
                        y_data,
                        validation_data=validation_data,
-                       epochs=num_epochs, class_weight=class_weights)
+                       epochs=num_epochs,
+                       class_weight=class_weights)
 
-    def test_network(self):
+    def test_network(self, test_data: pd.DataFrame):
         """Test the network using the test split."""
+        x_data = self.get_feature_data('test', test_data)
+        y_data = self.get_gt_data('test', test_data)
+        if self.model is not None:
+            result = self.model.evaluate(x_data, y_data)
+            print('evaluate')
+            print(result)
 
 
 class FeatureNormalizer:
@@ -202,6 +210,7 @@ def runit():
         'not_fully_paid', all_data.columns)
     network.build_network()
     network.train_network(all_data, 10)
+    network.test_network(all_data)
 
 
 runit()
