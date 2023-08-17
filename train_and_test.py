@@ -140,7 +140,7 @@ class FeatureNormalizer:
             self.status = 'no transform'
         else:
             self.status = 'not trained'
-        self.transformer = QuantileTransformer(n_quantiles=200)
+        self.transformer = QuantileTransformer(n_quantiles=20)
         self.category_index: Tuple[str, ...] = ('', )
 
     def get_status(self):
