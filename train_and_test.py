@@ -19,7 +19,7 @@ from sklearn.preprocessing import QuantileTransformer
 
 class NetworkHandler:
     """Simple multi-layer dense network."""
-    num_dense_layers = 1
+    num_dense_layers = 3
     dense_neurons = 3
 
     def __init__(self, num_features, split_column, gt_column,
@@ -102,6 +102,10 @@ class NetworkHandler:
                        validation_data=validation_data,
                        epochs=num_epochs,
                        class_weight=class_weights)
+
+    def network_description(self):
+        """Print the network description."""
+        self.model.summary()
 
     def test_network(self, test_data: pd.DataFrame):
         """Test the network using the test split."""
@@ -193,6 +197,7 @@ def runit():
     data_folder = code_folder.parents[0] / 'data'
     conn = sqlite3.connect(data_folder / 'lending_club_loan.sqlite')
     all_data = pd.read_sql_query('select * from loan_data', conn)
+    print('train samples', len(all_data[all_data['split'] == 'train']))
     special_columns = ('split', 'not_fully_paid')
 
     # Transform the features with quantile mapping, but skip
@@ -202,7 +207,6 @@ def runit():
             continue
         normalizer = FeatureNormalizer(col_name, special_columns)
         normalizer.train(all_data[all_data['split'] == 'train'])
-        print(col_name, normalizer.get_status())
         normalizer.normalize(all_data)
 
     network = NetworkHandler(
@@ -211,6 +215,7 @@ def runit():
     network.build_network()
     network.train_network(all_data, 10)
     network.test_network(all_data)
+    network.network_description()
 
 
 runit()
