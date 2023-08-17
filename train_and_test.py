@@ -17,8 +17,8 @@ from sklearn.preprocessing import QuantileTransformer
 
 class NetworkHandler:
     """Simple multi-layer dense network."""
-    num_dense_layers = 4
-    dense_neurons = 4
+    num_dense_layers = 3
+    dense_neurons = 20
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
@@ -78,7 +78,12 @@ class NetworkHandler:
         validation_data = (self.get_feature_data('valid', train_valid_data),
                            self.get_gt_data('valid', train_valid_data))
         assert self.model is not None
-        self.model.compile(loss='binary_crossentropy')
+        self.model.compile(loss='binary_crossentropy',
+                           optimizer='adam',
+                           metrics=[
+                               tf.keras.metrics.BinaryAccuracy(),
+                               tf.keras.metrics.BinaryCrossentropy()
+                           ])
         self.model.fit(x_data,
                        y_data,
                        validation_data=validation_data,
