@@ -20,7 +20,7 @@ from sklearn.preprocessing import QuantileTransformer
 class NetworkHandler:
     """Simple multi-layer dense network."""
     num_dense_layers = 3
-    dense_neurons = 3
+    dense_neurons = 10
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
@@ -42,9 +42,10 @@ class NetworkHandler:
         layer = self.input_layer
         for i in range(self.num_dense_layers):
             layer = tf.keras.layers.Dense(self.dense_neurons)(layer)
-            if i != self.num_dense_layers - 1:
-                layer = tf.keras.activations.tanh(layer)
-        self.output_layer = tf.keras.activations.softmax(layer)
+            layer = tf.keras.activations.relu(layer)
+        layer = tf.keras.layers.Dense(1)(layer)
+        # self.output_layer = tf.keras.activations.relu(layer)
+        self.output_layer = layer
         self.model = tf.keras.Model(inputs=(self.input_layer, ),
                                     outputs=(self.output_layer, ))
 
@@ -94,9 +95,9 @@ class NetworkHandler:
         validation_data = (self.get_feature_data('valid', train_valid_data),
                            self.get_gt_data('valid', train_valid_data))
         assert self.model is not None
-        self.model.compile(loss='binary_crossentropy',
+        self.model.compile(loss='mse',
                            optimizer='adam',
-                           metrics=[tf.keras.metrics.BinaryAccuracy()])
+                           metrics=[tf.keras.metrics.AUC()])
         self.model.fit(x_data,
                        y_data,
                        validation_data=validation_data,
@@ -107,7 +108,7 @@ class NetworkHandler:
         """Print the network description."""
         self.model.summary()
 
-    def test_network(self, test_data: pd.DataFrame):
+    def evaluate_network(self, test_data: pd.DataFrame):
         """Test the network using the test split."""
         x_data = self.get_feature_data('test', test_data)
         y_data = self.get_gt_data('test', test_data)
@@ -115,6 +116,14 @@ class NetworkHandler:
             result = self.model.evaluate(x_data, y_data)
             print('evaluate')
             print(result)
+
+    def predict(self, test_data: pd.DataFrame):
+        """Test the network using the test split."""
+        x_data = self.get_feature_data('test', test_data)
+        if self.model is not None:
+            result = self.model.predict(x_data)
+            return result
+        return None
 
 
 class FeatureNormalizer:
@@ -213,9 +222,15 @@ def runit():
         len(all_data.columns) - len(special_columns), 'split',
         'not_fully_paid', all_data.columns)
     network.build_network()
-    network.train_network(all_data, 10)
-    network.test_network(all_data)
+    network.train_network(all_data, 30)
+    network.evaluate_network(all_data)
     network.network_description()
+    predict = network.predict(all_data)
+    for x in predict:
+        if isinstance(x, np.ndarray):
+            print(x.shape)
+        else:
+            print('non array')
 
 
 runit()
