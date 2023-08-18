@@ -22,7 +22,10 @@ def runit():
     all_data = pd.read_sql_query('select * from predicted_loans', conn)
     test_data = all_data[all_data['split'] == 'test']
     hv.extension('bokeh')
-    plot = test_data.hvplot.hist('prediction', by='not_fully_paid')
+    plot = test_data.hvplot.hist('prediction',
+                                 by='not_fully_paid',
+                                 label='Loan Club',
+                                 alpha=0.7)
     hv.save(plot, data_folder / 'histogram_plot.png')
 
 
