@@ -44,7 +44,6 @@ class NetworkHandler:
             layer = tf.keras.layers.Dense(self.dense_neurons)(layer)
             layer = tf.keras.activations.relu(layer)
         layer = tf.keras.layers.Dense(1)(layer)
-        # self.output_layer = tf.keras.activations.relu(layer)
         self.output_layer = layer
         self.model = tf.keras.Model(inputs=(self.input_layer, ),
                                     outputs=(self.output_layer, ))
