@@ -57,19 +57,17 @@ def runit():
     plot = hv.Curve(predict_scores,
                     kdims='true_positive',
                     vdims='false_positive',
-                    label='neural network',
-                    group='Bad Loan Prediction')
+                    label='neural network')
     plot_list.append(plot.opts(**plot_options))
     # Predict using FICO score only.
     predict_scores = make_roc_curve(all_data, 'test', 'fico', -1.)
     plot = hv.Curve(predict_scores,
                     kdims='true_positive',
                     vdims='false_positive',
-                    label='FICO only',
-                    group='Bad Loan Prediction')
+                    label='FICO only')
     plot_list.append(plot.opts(**plot_options))
     plot = hv.Overlay(plot_list)
-    plot = plot.opts(legend_position='top_left')
+    plot = plot.opts(legend_position='top_left', title='Bad Loan Prediction')
     hv.save(plot, image_folder / 'roc_curve.html')
 
 
