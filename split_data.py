@@ -80,8 +80,11 @@ def runit():
     print(summary_table)
 
     conn = sqlite3.connect(data_folder / 'lending_club_loan.sqlite')
-    all_with_splits.to_sql('loan_data', conn, if_exists='replace')
-    summary_table.to_sql('summary_data', conn, if_exists='replace')
+    all_with_splits.to_sql('loan_data', conn, if_exists='replace', index=False)
+    summary_table.to_sql('summary_data',
+                         conn,
+                         if_exists='replace',
+                         index=False)
 
 
 runit()
