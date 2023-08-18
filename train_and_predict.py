@@ -53,7 +53,10 @@ class NetworkHandler:
                          raw_data: pd.DataFrame) -> np.ndarray:
         """Extract the features for each row in the dataframe and
         return them in a numpy array."""
-        split_data = raw_data[raw_data['split'] == split]
+        if split == 'all':
+            split_data = raw_data
+        else:
+            split_data = raw_data[raw_data['split'] == split]
         result = []
         for row_id in range(len(split_data.index)):
             input_row = split_data.iloc[row_id]
@@ -102,7 +105,8 @@ class NetworkHandler:
                        y_data,
                        validation_data=validation_data,
                        epochs=num_epochs,
-                       class_weight=class_weights)
+                       class_weight=class_weights,
+                       callbacks=tf.keras.callbacks.EarlyStopping(patience=5))
 
     def network_description(self):
         """Print the network description."""
@@ -118,12 +122,14 @@ class NetworkHandler:
             print(result)
 
     def predict(self, test_data: pd.DataFrame):
-        """Test the network using the test split."""
-        x_data = self.get_feature_data('test', test_data)
+        """Run inference and save the predictions in the data frame."""
+        x_data = self.get_feature_data('all', test_data)
         if self.model is not None:
-            result = self.model.predict(x_data)
-            return result
-        return None
+            predictions = self.model.predict(x_data)
+            predict_shape = predictions[0].shape
+            print('predictions shape', predict_shape)
+            test_data['prediction'] = list(predictions[0].reshape(
+                (predict_shape[0], )))
 
 
 class FeatureNormalizer:
@@ -241,12 +247,8 @@ def runit():
     network.network_description()
     network.train_network(all_data, 30)
     network.evaluate_network(all_data)
-    predict = network.predict(all_data)
-    for field in predict:
-        if isinstance(field, np.ndarray):
-            print(field.shape)
-        else:
-            print('non array')
+    network.predict(all_data)
+    all_data.to_sql('predicted_loans', conn, if_exists='replace')
 
 
 runit()
