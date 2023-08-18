@@ -5,7 +5,7 @@ Test the model using the test split.
 import collections
 import pathlib
 import sqlite3
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, List
 from numbers import Number
 
 import tensorflow as tf
@@ -20,7 +20,7 @@ from sklearn.preprocessing import QuantileTransformer
 class NetworkHandler:
     """Simple multi-layer dense network."""
     num_dense_layers = 4
-    dense_neurons = 4
+    dense_neurons = 20
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
@@ -40,7 +40,7 @@ class NetworkHandler:
         """Build the network."""
         self.input_layer = tf.keras.Input((self.num_features, ))
         layer = self.input_layer
-        for i in range(self.num_dense_layers):
+        for _ in range(self.num_dense_layers):
             layer = tf.keras.layers.Dense(self.dense_neurons)(layer)
             layer = tf.keras.activations.relu(layer)
         layer = tf.keras.layers.Dense(1)(layer)
@@ -130,7 +130,7 @@ class FeatureNormalizer:
     """Normalize a single feature in a dataset.
 
        binary feature: leave as-is.
-       categorical feature: replace with index.
+       categorical feature: add one-hot columns
        numeric feature: normalize with quantile transform
     """
 
@@ -141,7 +141,7 @@ class FeatureNormalizer:
         else:
             self.status = 'not trained'
         self.transformer = QuantileTransformer(n_quantiles=20)
-        self.category_index: Tuple[str, ...] = ('', )
+        self.category_list: List[str] = []
 
     def get_status(self):
         """Return status string."""
@@ -162,7 +162,7 @@ class FeatureNormalizer:
         if isinstance(first_value, str):
             self.status = 'categorical'
             value_list.sort()
-            self.category_index = tuple(value_list)
+            self.category_list = value_list
             return
 
         if value_set == {0, 1}:
@@ -180,16 +180,27 @@ class FeatureNormalizer:
             return
 
         if self.status == 'categorical':
-            trans_data = []
+            # For each row in data, make a one-hot representation in
+            # new column dictionaries.
+            transformed_columns: Dict[str,
+                                      list] = collections.defaultdict(list)
             for row_id in range(len(data.index)):
                 value = data.iloc[row_id][self.feature_name]
-                trans_data.append(
-                    self.category_index.index(value) /
-                    len(self.category_index))
-            data[self.feature_name] = trans_data
+                for i, category_value in enumerate(self.category_list):
+                    # Make one-hot representation of
+                    col_name = f'{self.feature_name}_{i}'
+                    if category_value == value:
+                        transformed_columns[col_name].append(1.)
+                    else:
+                        transformed_columns[col_name].append(0.)
+            # Remove the original column.
+            data.drop(self.feature_name, axis=1, inplace=True)
+            # Insert the added columns.
+            for key, value in transformed_columns.items():
+                data.insert(0, key, value)
             return
 
-        # Sanity check.
+        # If we get here, the status should be quantile..
         assert self.status == 'quantile'
 
         transformed_data = self.transformer.transform(
@@ -209,14 +220,19 @@ def runit():
     print('train samples', len(all_data[all_data['split'] == 'train']))
     special_columns = ('split', 'not_fully_paid')
 
-    # Transform the features with quantile mapping, but skip
-    # special columns.
+    print('before normalize')
+    print(all_data.iloc[:10])
+
+    # Normalize the features.
     for col_name in all_data.columns:
         if col_name in special_columns:
             continue
         normalizer = FeatureNormalizer(col_name, special_columns)
         normalizer.train(all_data[all_data['split'] == 'train'])
         normalizer.normalize(all_data)
+
+    print('after normalize')
+    print(all_data.iloc[:10])
 
     network = NetworkHandler(
         len(all_data.columns) - len(special_columns), 'split',
@@ -226,9 +242,9 @@ def runit():
     network.evaluate_network(all_data)
     network.network_description()
     predict = network.predict(all_data)
-    for x in predict:
-        if isinstance(x, np.ndarray):
-            print(x.shape)
+    for field in predict:
+        if isinstance(field, np.ndarray):
+            print(field.shape)
         else:
             print('non array')
 
