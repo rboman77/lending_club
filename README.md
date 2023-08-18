@@ -56,6 +56,34 @@ Non-trainable params: 0 (0.00 Byte)
 
 ```
 
+# Normalizing Features
+
+The features are normalized so they will fit a neural network better.
+
+## Categorical Features
+
+Categorical features are converted to one-hot representation.
+
+## Binary Features
+
+If the feature is always 0 or 1, we leave it as-is.
+
+## Floating Point Features
+
+These features are transformed using
+[quantile mapping.](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.quantile_transform.html)
+
+# Prediction Results
+
+This ROC curve shows true positive versus false positive.
+
+* true positive: a bad loan was classified as bad
+* false positive: a good loan was classified as bad
+
+In this case, you would get slightly better results using the FICO
+score by itself. Either way, the prediction is not very good.
+
+<iframe src="images/roc_curve.html"></iframe>
 
 
 
