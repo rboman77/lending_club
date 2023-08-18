@@ -238,9 +238,9 @@ def runit():
         len(all_data.columns) - len(special_columns), 'split',
         'not_fully_paid', all_data.columns)
     network.build_network()
+    network.network_description()
     network.train_network(all_data, 30)
     network.evaluate_network(all_data)
-    network.network_description()
     predict = network.predict(all_data)
     for field in predict:
         if isinstance(field, np.ndarray):
