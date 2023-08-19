@@ -24,6 +24,13 @@ For details see
 This program splits the data into train, test, and validation.
 It also replaces periods in column names to underscores.
 
+| split      | fraction |
+|:----------:|:---------|
+| train      | 80%      |
+| test       | 15%      |
+| validation | 5%       |
+
+
 # Train and Predict Program
 
 *train\_and\_predict.py*
