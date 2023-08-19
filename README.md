@@ -88,9 +88,8 @@ These features are transformed using
 
 # Balancing Training Data
 
-Most of the loans are good so training data is highly imbalanced.  In
-this case, we use class weights to help the neural
-network.
+Most of the loans are good so training data is highly imbalanced. We used
+class weights for this but they didn't seem to help.
 
 
 # Prediction Results
