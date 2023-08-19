@@ -93,5 +93,3 @@ score by itself. Either way, the prediction is not very good.
 ![](images/roc_curve.svg)
 
 
-
-
