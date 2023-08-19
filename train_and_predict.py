@@ -84,14 +84,14 @@ class NetworkHandler:
         for row_id in range(len(train_valid_data.index)):
             row = train_valid_data.iloc[row_id]
             sample_counts[row[self.gt_column]] += 1
-        sample_fractions = {}
-        for key in sample_counts:
-            sample_fractions[key] = float(sample_counts[key]) / len(
-                train_valid_data.index)
-        # Class weights are the inverse of the sample counts.
         class_weights: Dict[Number, float] = {}
-        for key, value in sample_fractions.items():
+        max_weight = 0.
+        # Class weights are inversely proportional to count.
+        for key, value in sample_counts.items():
             class_weights[key] = 1. / value
+            max_weight = max(max_weight, class_weights[key])
+        for key in class_weights.keys():
+            class_weights[key] /= max_weight
         x_data = self.get_feature_data('train', train_valid_data)
         y_data = self.get_gt_data('train', train_valid_data)
         validation_data = (self.get_feature_data('valid', train_valid_data),
