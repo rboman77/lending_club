@@ -44,13 +44,11 @@ def runit():
         image_folder.mkdir()
     conn = sqlite3.connect(data_folder / 'lending_club_loan.sqlite')
     all_data = pd.read_sql_query('select * from predicted_loans', conn)
-    hv.extension('bokeh')
+    hv.extension('matplotlib')
     plot_list = []
     plot_options = {
-        'width': 600,
-        'height': 600,
+        'fig_size': 200,
         'show_grid': True,
-        'tools': ['hover']
     }
     # Predict using neural network score.
     predict_scores = make_roc_curve(all_data, 'test', 'prediction', 1.)
@@ -68,7 +66,7 @@ def runit():
     plot_list.append(plot.opts(**plot_options))
     plot = hv.Overlay(plot_list)
     plot = plot.opts(legend_position='top_left', title='Bad Loan Prediction')
-    hv.save(plot, image_folder / 'roc_curve.html')
+    hv.save(plot, image_folder / 'roc_curve.svg')
 
 
 runit()
