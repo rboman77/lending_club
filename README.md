@@ -15,7 +15,7 @@ Predict bad loans based based on features.
 
 There are several features including FICO score and interest rate.
 For details see
-[this link](https://www.kaggle.com/datasets/deependraverma13/lending-club-loan-data-analysis-deep-learning?resource=download)
+[this link.](https://www.kaggle.com/datasets/deependraverma13/lending-club-loan-data-analysis-deep-learning?resource=download)
 
 # Split Data Program
 
