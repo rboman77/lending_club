@@ -90,7 +90,8 @@ This ROC curve shows true positive versus false positive.
 In this case, you would get slightly better results using the FICO
 score by itself. Either way, the prediction is not very good.
 
-<iframe src="images/roc_curve.html"></iframe>
+![](images/roc_curve.svg)
+
 
 
 
