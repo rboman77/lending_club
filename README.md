@@ -73,6 +73,13 @@ If the feature is always 0 or 1, we leave it as-is.
 These features are transformed using
 [quantile mapping.](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.quantile_transform.html)
 
+# Balancing Training Data
+
+Most of the data is fully paid. So training data is highly imbalanced.
+In this case, we use class weights to help the neural network although
+it didn't help.
+
+
 # Prediction Results
 
 This ROC curve shows true positive versus false positive.
