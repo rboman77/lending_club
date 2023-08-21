@@ -22,6 +22,14 @@ It also replaces periods in column names to underscores.
 | test       | 15%      |
 | validation | 5%       |
 
+Note that if we took a random sample of 5% of all of the data for
+validation, there is a high probability that all or nearly all of the
+validation set would be good loans since the vast majority of all
+loans are good.
+
+So we take a random sample of 5% of the good loans and 5% of the bad
+loans for validation. The same technique is used for the test and
+train splits.
 
 # Train and Predict Program
 
