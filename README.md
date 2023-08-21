@@ -91,6 +91,12 @@ These features are transformed using
 Most of the loans are good so training data is highly imbalanced. We used
 class weights for this but they didn't seem to help.
 
+# Plotting Program
+
+*plot\_data.py*
+
+Reads prediction data from the database and plots ROC curves.
+
 
 # Prediction Results
 
