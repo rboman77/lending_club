@@ -1,15 +1,7 @@
-# Lending Club
+# Tensorflow Lending Club Example
 
-Classification code for Kaggle lending club loan data.
-
-
-# Source Data
-
-https://www.kaggle.com/datasets/deependraverma13/lending-club-loan-data-analysis-deep-learning?resource=download
-
-# Problem
-
-Predict bad loans based based on features.
+Example of using tensor flow to predict bad loans
+for [this Kaggle dataset,](https://www.kaggle.com/datasets/deependraverma13/lending-club-loan-data-analysis-deep-learning?resource=download)
 
 ## Features
 
