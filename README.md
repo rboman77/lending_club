@@ -1,15 +1,7 @@
-# Lending Club
+# Tensorflow Lending Club Example
 
-Classification code for Kaggle lending club loan data.
-
-
-# Source Data
-
-https://www.kaggle.com/datasets/deependraverma13/lending-club-loan-data-analysis-deep-learning?resource=download
-
-# Problem
-
-Predict bad loans based based on features.
+Example of using tensor flow to predict bad loans
+for [this Kaggle dataset,](https://www.kaggle.com/datasets/deependraverma13/lending-club-loan-data-analysis-deep-learning?resource=download)
 
 ## Features
 
@@ -30,6 +22,14 @@ It also replaces periods in column names to underscores.
 | test       | 15%      |
 | validation | 5%       |
 
+Note that if we took a random sample of 5% of all of the data for
+validation, there is a high probability that all or nearly all of the
+validation set would be good loans since the vast majority of all
+loans are good.
+
+So we take a random sample of 5% of the good loans and 5% of the bad
+loans for validation. The same technique is used for the test and
+train splits.
 
 # Train and Predict Program
 
@@ -90,6 +90,12 @@ These features are transformed using
 
 Most of the loans are good so training data is highly imbalanced. We used
 class weights for this but they didn't seem to help.
+
+# Plotting Program
+
+*plot\_data.py*
+
+Reads prediction data from the database and plots ROC curves.
 
 
 # Prediction Results
