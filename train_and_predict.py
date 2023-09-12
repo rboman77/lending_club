@@ -19,8 +19,8 @@ from sklearn.preprocessing import QuantileTransformer
 
 class NetworkHandler:
     """Simple multi-layer dense network."""
-    num_dense_layers = 4
-    dense_neurons = 20
+    num_dense_layers = 3
+    dense_neurons = 50
 
     def __init__(self, num_features, split_column, gt_column,
                  col_names: Tuple[str, ...]):
@@ -77,7 +77,7 @@ class NetworkHandler:
 
     def train_network(self,
                       train_valid_data: pd.DataFrame,
-                      num_epochs: int = 50):
+                      num_epochs: int = 200):
         """Train the network using train and valid splits."""
 
         sample_counts: Dict[Number, int] = collections.defaultdict(int)
@@ -98,14 +98,14 @@ class NetworkHandler:
                            self.get_gt_data('valid', train_valid_data))
         assert self.model is not None
         self.model.compile(loss='mse',
-                           optimizer='adam',
+                           optimizer='sgd',
                            metrics=[tf.keras.metrics.AUC()])
         self.model.fit(x_data,
                        y_data,
                        validation_data=validation_data,
                        epochs=num_epochs,
                        class_weight=class_weights,
-                       callbacks=tf.keras.callbacks.EarlyStopping(patience=5))
+                       callbacks=tf.keras.callbacks.EarlyStopping(patience=20))
 
     def network_description(self):
         """Print the network description."""
@@ -161,6 +161,8 @@ class FeatureNormalizer:
 
     def train(self, train_data: pd.DataFrame):
         """Train the mapping."""
+        if self.status == 'no transform':
+            return
         value_set = set(train_data[self.feature_name])
         value_list = list(value_set)
         first_value = list(value_set)[0]
@@ -181,7 +183,7 @@ class FeatureNormalizer:
     def normalize(self, data: pd.DataFrame):
         """Apply the trained mapping to the data."""
         assert self.status != 'not trained', 'Transformer not trained'
-        if self.status == 'binary':
+        if self.status in ('binary', 'no transform'):
             return
 
         if self.status == 'categorical':
